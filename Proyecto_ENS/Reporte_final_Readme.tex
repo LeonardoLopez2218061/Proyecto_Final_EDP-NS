@@ -1,0 +1,181 @@
+\documentclass[A4,10pt]{article}
+\usepackage[dvips]{graphicx}
+\usepackage[spanish]{babel}
+%\selectlanguage{spanish}
+\usepackage[utf8]{inputenc}
+\usepackage{amsthm,amsmath,amssymb,graphics,mathrsfs}
+\usepackage[active]{srcltx}
+\usepackage{hyperref}
+\usepackage{cite}
+\usepackage{multicol,pstricks,pstricks-add,setspace}
+%\usepackage[margin=10pt,font=footnotesize,labelfont=bf,labelsep=endash]{caption}
+\usepackage[left=4cm,top=3cm,right=2.4cm,bottom=3.2cm]{geometry}
+% \newcolumntype{E}{>{$}c<{$}}
+\usepackage{pst-all}
+\usepackage{nonfloat}
+\usepackage[bf,footnotesize]{caption2}
+\usepackage[dvips]{graphicx}
+\pagestyle{myheadings}
+\parindent=0pt
+%opening
+\usepackage{fancyhdr}
+\pagestyle{fancy}
+\fancyhead{}
+\fancyhead[R]{Proyecto Modelado Matemático I}
+\fancyfoot{}
+\fancyfoot[L]{López, J. \textit{E-mail: \href{jorge2218061@correo.uis.edu.co}{jorge2218061@correo.uis.edu.co}}}
+\fancyfoot[R]{\thepage}
+\renewcommand{\headrulewidth}{0pt}
+\title{{\huge \textbf{Buscando soluciones numéricas vía Python de EDPs: Una introducción de las EDPs en una y dos dimensiones que conducen a las ecuaciones de Navier-Stokes. }}}
+\author{Jorge Leonardo López Agredo\\ 
+	\small Universidad Industrial de Santander Escuela de Física\\
+	 \small jorge2218061@correo.uis.edu.co\\ 
+	\small Maestría en Matemática Aplicada\\
+	 Docente: Ph.D Juan Carlos Basto Pineda\\ 
+	\date{}
+ }
+
+\begin{document}
+
+	\maketitle
+	\vspace*{-1.5cm}
+\begin{center}\rule{0.9\textwidth}{0.1mm} \end{center}
+
+\section{Objetivo general}
+
+Construir una actividad pedagógica para el curso de Modelado Matemático $I$, en el cual se introduzca las ideas básicas  de  los esquemas de diferencias finitas hacia adelante y hacia atrás, relacionadas con las soluciones numéricas de las ecuaciones diferenciales parciales vía Python.
+\subsection{Objetivos específicos:}
+\begin{enumerate}
+	\item Crear un Jupyter Notebook donde se aborden la construcción de los esquemas de diferencias finitas que permita solucionar numéricamente una ecuación diferencial parcial en una dimensión.
+	
+	\item Desarrollar una actividad pedagógica que permita estudiar la ecuaciones en una dimensión necesarias para introducir las ecuaciones de Navier-Stokes.
+	
+	\item Introducir algunas ideas básicas para la construcción de un método numérico que permita afrontar el problema en dos dimensiones de las ecuaciones relacionadas con las ecuaciones de Navier-Stokes.
+	
+	\item  Diseñar un ejercicio final, donde los estudiantes puedan implementar las ideas desarrolladas en la actividad pedagógica, usando las herramientas aprendidas en el curso sobre Python y el esquema de diferencias finitas.
+
+	
+\end{enumerate}
+
+
+%	\vspace*{-2.0cm}
+\begin{center}\rule{0.9\textwidth}{0.1mm}
+ \end{center}
+\begin{multicols}{2}
+
+
+\section{Introducción}
+
+Las ecuaciones de Navier-Stokes (ENS) son un conjunto de ecuaciones diferenciales parciales (EDP) no lineales que describen el movimiento de un fluido viscoso, las cuales expresan matemáticamente la conservación de momento  y de la masa para los fluidos newtonianos (fluido cuya viscosidad puede considerarse constante)\cite{Achenson}.  Su nombre se debe en honor del físico e ingeniero francés Claude-Louis Navier (1785-1836) y al físico-matemático irlandés George Gabriel Stokes (1819-1903), los cuales desarrollaron la formulación integral y diferencial aplicando los principios de conservación de la mecánica y la termodinámica a un volumen de fluido y ciertas consideraciones como lo fue los esfuerzos tangenciales y su relación lineal con el gradiente de velocidad del movimiento del fluido, conocida como Ley de viscosidad de Newton\cite{Achenson}.\\
+
+
+De las ENS no se dispone de una solución general de manera analítica, salvo para casos particulares, en fluidos específicos y bajo condiciones muy concretas\cite{Girault,Achenson}. Es por esto, que es preciso recurrir al análisis numérico, para determinar una solución aproximada que permita modelar problemas más generales. La dinámica de fluidos computacional (CFD) es la rama de la mecánica de fluidos que se ocupa del estudio mediante métodos numéricos de soluciones\cite{Barbagroup,Girault}.
+\end{multicols}
+\begin{center}\rule{0.9\textwidth}{0.1mm}
+\end{center}
+\begin{multicols}{2}
+\section{Algunas ideas teóricas}
+
+Para poder estudiar algunas ideas en la discretización de las ecuaciones de Navier-Stokes en una dimensión (1-D) y dos dimensiones (2-D) es importarte comenzar estudiando la ecuación de convección lineal
+
+$$\frac{\partial u}{\partial t} + c \frac{\partial u}{\partial x} = 0.$$
+con condiciones iniciales $u(x,0)=u_0(x)$, dato conocido como onda inicial. La ecuación representa la propagación de la onda inicial con velicidad $c$. La solución analítica usando variables separables es dada por $u(x,t)=u_0(x-ct)$. Para poder garantizar la existencia de las soluciones y la unicidad en algunos de los casos, de los problemas estudiados aquí, es importante usar resultados fuertes de Ecuaciones diferenciales parciales, para mayor imformación sobre esto vease por ejemplo \cite{Girault}.\\
+
+
+Para poder implementar el método numérico, nosotros discretizamos esta ecuación tanto en el tiempo como en el espacio, usando el esquema de diferencias finitas hacia adelante\cite{Barbagroup,Girault} para la derivada en el tiempo y el esquema de diferencias finitas hacia atrás\cite{Barbagroup,Girault} para la derivada en el espacio. La coordenada espacial $x$ se discretiza en $N$ pasos regulares $\Delta x$ desde $i=0$ hasta $i=N$. Para la variable temporal $t$ se discretiza tomando intervalos de tamaño $\Delta t$.\\
+Por la definición de derivada, removiendo el límite, es posible aproximar
+$$\frac{\partial u}{\partial x}\approx \frac{u(x+\Delta x)-u(x)}{\Delta x}.$$
+
+Así, por nuestra discretización, se sigue que:
+$$\frac{u_i^{n+1}-u_i^n}{\Delta t} + c \frac{u_i^n - u_{i-1}^n}{\Delta x} = 0, $$
+donde $n$ y $n+1$ son dos pasos en el tiempo, mientras que $i-1$ y $i$ son dos puntos vecinos de la coodenada $x$ discretizada. Si se tienen en cuenta la condiciones iniciales, la única variable desconocida es $u_i^{n+1}$. Resolviendo la ecuación para $u_i^{n+1}$, podemos obtener una ecuación que nos permita avanzar en el tiempo de la siguiente manera: 
+$$u_i^{n+1} = u_i^n - c \frac{\Delta t}{\Delta x}(u_i^n-u_{i-1}^n).$$
+
+De manera análoga, es posible discretizar la ecuación linear de convección 2-D
+$$\frac{\partial u}{\partial t}+c\frac{\partial u}{\partial x} + c\frac{\partial u}{\partial y} = 0,$$
+como se sigue:
+$$u_{i,j}^{n+1} = u_{i,j}^n-c \frac{\Delta t}{\Delta x}(u_{i,j}^n-u_{i-1,j}^n)-c \frac{\Delta t}{\Delta y}(u_{i,j}^n-u_{i,j-1}^n).$$
+\\
+
+Ahora, es posible estudiar la ecuación de convección no lineal 1-D 
+$$\frac{\partial u}{\partial t} + u \frac{\partial u}{\partial x} = 0,$$
+y discretizarla mediante:
+$$u_i^{n+1} = u_i^n - u_i^n \frac{\Delta t}{\Delta x} (u_i^n - u_{i-1}^n).$$
+Generizar esta idea a 2-D nos permite obtener un sistema de dos EDP relacionadas así:
+$$\frac{\partial u}{\partial t} + u \frac{\partial u}{\partial x} + v \frac{\partial u}{\partial y} = 0,$$
+
+$$\frac{\partial v}{\partial t} + u \frac{\partial v}{\partial x} + v \frac{\partial v}{\partial y} = 0.$$
+
+Cuya discretización se define como:
+$$ u_{i,j}^{n+1} = u_{i,j}^n - u_{i,j} \frac{\Delta t}{\Delta x} (u_{i,j}^n-u_{i-1,j}^n) - v_{i,j}^n \frac{\Delta t}{\Delta y} (u_{i,j}^n-u_{i,j-1}^n),$$
+
+$$v_{i,j}^{n+1} = v_{i,j}^n - u_{i,j} \frac{\Delta t}{\Delta x} (v_{i,j}^n-v_{i-1,j}^n) - v_{i,j}^n \frac{\Delta t}{\Delta y} (v_{i,j}^n-v_{i,j-1}^n).$$
+
+Ideas análogas a las descritas anteriormente, nos permiten afrontar otras EDP importantes en el objetivo de poder encontrar soluciones numéricas para las ENS. Entre ellas se destacan la ecuación de difusión 1-D 
+$$\frac{\partial u}{\partial t}= \nu \frac{\partial^2 u}{\partial x^2}$$
+y su generalización a 2-D
+$$\frac{\partial u}{\partial t} = \nu \frac{\partial ^2 u}{\partial x^2} + \nu \frac{\partial ^2 u}{\partial y^2}.$$
+\\
+La ecuación de Burgues (EB) en una dimensión espacial, es una combinación de la ecuación de convección no lineal y la ecuación de difusión.
+
+$$\frac{\partial u}{\partial t} + u \frac{\partial u}{\partial x} = \nu \frac{\partial ^2u}{\partial x^2}$$
+
+Usando los pasos realizados en la discretización de la ECnL y la ED obtenemos:
+
+$$\frac{u_i^{n+1}-u_i^n}{\Delta t} + u_i^n \frac{u_i^n - u_{i-1}^n}{\Delta x} = \nu \frac{u_{i+1}^n - 2u_i^n + u_{i-1}^n}{\Delta x^2}.$$
+
+
+Finalmente, las ecuaciones de Navier-Stokes para un fluido incompresible, 
+
+\begin{equation*}
+	\begin{split}
+	\nabla \cdot\vec{v} &= 0 \\
+	\frac{\partial \vec{v}}{\partial t}+(\vec{v}\cdot\nabla)\vec{v} &= -\frac{1}{\rho}\nabla p + \nu \nabla^2\vec{v},
+	\end{split}
+\end{equation*}
+
+donde $\vec{v}$ representa el campo de velocidades del fluido, $\rho$ la densidad del fluido, $p$ la presión y $\nu$ es el coeficiente de viscocidad del fluido.\\
+
+ Como observaciones finales, la primera ecuación representa la conservación de la masa cuando la densidad es constante. La segunda ecuación es la conservación del momento. Pero aparece un problema: la ecuación de continuidad para el flujo incompresible $ \nabla \cdot \vec{v} = 0 $ no tiene una variable dominante y no hay una forma obvia de acoplar la velocidad  y la presión $ p $. En el caso del flujo compresible, por el contrario, la continuidad de la masa proporcionaría una ecuación de evolución para la densidad $ \rho $, que se acopla con una ecuación de estado que relaciona $ \rho $ y $ p $. Para ello, debemos hacer un estudio de discretización de la ecuación de Poisson 2-D
+$$\frac{\partial ^2 p}{\partial x^2} + \frac{\partial ^2 p}{\partial y^2} = b,$$
+donde si $b=0$ se conoce como la ecuación de Laplace.
+
+
+\end{multicols}
+\begin{center}\rule{0.9\textwidth}{0.1mm}
+\end{center}
+\begin{multicols}{2}
+\section{Desarrollo Pedagógico}
+
+Para el desarrollo de la actividad pedagógica se desarrolla en dos secciones, en las cuales se desarrollan actividades que involucan la creación de los métodos numéricos que discretizan las siguientes ecuaciones diferenciales parciales(Ver \cite{LeonardoEC,LeonardoED,LeonardoEDP2d})
+
+\begin{enumerate}
+	\item Ecuación de convección lineal 1-D.
+	\item Ecuación de convección no lineal 1-D.
+	\item Ecuación de difusion 1-D.
+	\item Ecuación de Burgers 1-D.
+	\item Ecuación de convección lineal 2-D, ecuación de difusión 2-D, sistemas de ecuaciones no lineales acopladas y Ecuación de Burgers 2-D.
+\end{enumerate}
+La teoría que sustenta cada uno de los procesos de discretización así como los métodos numéricos usados para poder definir las discretizaciones de cada una de las EDPs estudiadas se encuentran dentro de los Jupyter Notebooks desarrollados para esta actividad \cite{LeonardoEC,LeonardoED,LeonardoEDP2d}, los cuales están basados en el trabajo realizado de la PhD Lorena A. Barba @LorenaABarba, quien desarrolló el material CFDPython \cite{Barba,Barbagroup}, sobre el cual está desarrollado el siguiente proyecto pedagógico. Adicionalmente, de planean actividades para desarrollo personalizado que permitan reforzar y caracterizar los conceptos alcanzados durante las secciones. \\
+
+Se resalta entre las actividades desarrolladas el uso de la librería \textbf{SymPy} la cual es la biblioteca matemática simbólica de Python. Tiene muchas de las mismas funciones matemáticas simbólicas que Mathematica con el beneficio adicional de que podemos traducir fácilmente sus resultados a nuestros cálculos de Python (también es gratuito y de código abierto). Por otra parte, se hace uso de las librerías \textbf{mpl\_toolkits.mplot3d} y \textbf{matplotlib} para el desarrollo y representación de buenos gráficos que permitan ilustrar algunas caracteristicas de las soluciones de las EDPs.  
+
+\end{multicols}
+\begin{thebibliography}{99}
+	\addcontentsline{toc}{chapter}{Bibliografía}
+
+	\bibitem{Barba} Barba, Lorena A., and Forsyth, Gilbert F. (2018). \textit{CFD Python: the 12 steps to Navier-Stokes equations}. Journal of Open Source Education, 21. [\href{https://doi.org/10.21105/jose.00021}{https://doi.org/10.21105/jose.00021}]
+	
+		\bibitem{LeonardoEC} López, L. (2021) \textit{Proyecto\_Final\_EDP-NS}.\href{https://github.com/LeonardoLopez2218061/Proyecto_Final_EDP-NS/blob/main/Desarrollo_Jupyter/ecuacion_conveccion.ipynb}{ecuacion\_conveccion.ipynb}
+%\bibitem{sch1} SCHRÖDINGER , E. \textit{Annalen der Physik ILXXX}. Folge 361, 1926.
+%\bibitem{opticalphysics} LIPSON, S. G.; LIPSON, H. \textit{Optical Physics.} 2 ed. New York: Cambridge University Press, 1981.
+%\bibitem{mediblefuncion} S. LUNDEEN, J. S.; SUTHERLAND, B.; PATELL, A.;  STEWART C. \&  BAMBERT, C. \emph{Direct measurement of the quantum wavefunction.} Nature 474, (2011). p. 188-191.
+\bibitem{Barbagroup} Barbagroup, (2019). \textit{CFDPython}. [\href{https://github.com/barbagroup/CFDPython}{https://github.com/barbagroup/CFDPython}]
+\bibitem{Achenson} Achenson, D. J. (1990). \textit{Elementary Fluid Dynamics, Oxford Applied Mathematics and Computing Science Series}. Oxford University Press, ISBN 0-19-859679-0.
+	\bibitem{LeonardoED} López, L. (2021) \textit{Proyecto\_Final\_EDP-NS}. [\href{https://github.com/LeonardoLopez2218061/Proyecto_Final_EDP-NS/blob/main/Desarrollo_Jupyter/ecuacion_difusion_and_burguers.ipynb}{ecuacion\_difusion\_and\_burguers.ipynb}]
+\bibitem{Girault} V. Girault and P.A. Raviart. \textit{Finite Element Methods for Navier–Stokes Equations: Theory and Algorithms}. Springer Series in Computational Mathematics. Springer-Verlag, 1986.
+
+	\bibitem{LeonardoEDP2d} López, L. (2021) \textit{Proyecto\_Final\_EDP-NS}. [\href{https://github.com/LeonardoLopez2218061/Proyecto_Final_EDP-NS/blob/main/Desarrollo_Jupyter/trabajandoEDP_en_2D.ipynb}{trabajandoEDP\_en\_2D.ipynb}]
+
+\end{thebibliography}
+\end{document}
